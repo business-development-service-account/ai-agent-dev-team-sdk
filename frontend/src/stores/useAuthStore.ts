@@ -23,34 +23,78 @@ interface AuthStore {
   _setUser: (user: any | null) => void;
 }
 
-// Mock authentication for development
-const mockAuth = {
+// OAuth2 authentication implementation
+const oauth2Auth = {
   login: async (username: string, password: string) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // OAuth2 Resource Owner Password Credentials Grant
+    const tokenUrl = import.meta.env.VITE_OAUTH_TOKEN_URL || 'http://localhost:8000/auth/token';
+    const clientId = import.meta.env.VITE_OAUTH_CLIENT_ID || 'ai-agent-sdk-client';
 
-    if (username === 'admin' && password === 'password') {
-      return {
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
-        expires_in: 3600,
-        token_type: 'Bearer',
-        scope: 'all'
-      };
+    const params = new URLSearchParams();
+    params.append('grant_type', 'password');
+    params.append('username', username);
+    params.append('password', password);
+    params.append('client_id', clientId);
+    params.append('scope', 'all');
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Authentication failed');
     }
 
-    throw new Error('Invalid credentials');
+    return await response.json();
   },
 
   getUserInfo: async () => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return {
-      id: '1',
-      username: 'admin',
-      email: 'admin@ai-agent-sdk.com',
-      name: 'Administrator',
-      roles: ['admin']
-    };
+    const token = tokenStorage.getAccessToken();
+    if (!token) {
+      throw new Error('No access token available');
+    }
+
+    const userInfoUrl = import.meta.env.VITE_USER_INFO_URL || 'http://localhost:8000/auth/user';
+
+    const response = await fetch(userInfoUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get user info');
+    }
+
+    return await response.json();
+  },
+
+  refreshToken: async (refreshToken: string) => {
+    const tokenUrl = import.meta.env.VITE_OAUTH_TOKEN_URL || 'http://localhost:8000/auth/token';
+    const clientId = import.meta.env.VITE_OAUTH_CLIENT_ID || 'ai-agent-sdk-client';
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('refresh_token', refreshToken);
+    params.append('client_id', clientId);
+
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Token refresh failed');
+    }
+
+    return await response.json();
   }
 };
 
@@ -72,12 +116,11 @@ export const useAuthStore = create<AuthStore>()(
             _setLoading(true);
             _setError(null);
 
-            const tokenResponse = await mockAuth.login(username, password);
-            const userInfo = await mockAuth.getUserInfo();
+            const tokenResponse = await oauth2Auth.login(username, password);
+            const userInfo = await oauth2Auth.getUserInfo();
 
-            // Store tokens (in a real app, this would use the tokenStorage utility)
-            localStorage.setItem('access_token', tokenResponse.access_token);
-            localStorage.setItem('refresh_token', tokenResponse.refresh_token);
+            // Store tokens using the tokenStorage utility
+            tokenStorage.setTokens(tokenResponse.access_token, tokenResponse.refresh_token);
 
             _setAuthenticated(true);
             _setUser(userInfo);
@@ -89,8 +132,7 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         logout: () => {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          tokenStorage.clearTokens();
 
           set({
             isAuthenticated: false,

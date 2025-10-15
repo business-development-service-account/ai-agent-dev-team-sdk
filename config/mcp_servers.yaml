@@ -134,7 +134,7 @@ custom_servers:
 
     capabilities:
       - "custom_method_1"
-      -custom_method_2"
+      - "custom_method_2"
 
 # Global MCP Configuration
 global:
