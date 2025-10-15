@@ -14,7 +14,13 @@ from enum import Enum
 from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
 
-from anthropic import Anthropic
+try:
+    from anthropic import Anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    Anthropic = None
+
 from ..core.exceptions import (
     AgentSDKError,
     TaskExecutionError,
@@ -22,7 +28,8 @@ from ..core.exceptions import (
     ConfigurationError
 )
 from ..core.rules_engine import TaskSpec
-from ..core.context_manager import AgentContext, TaskResult
+from ..core.context_manager import AgentContext
+from ..core.task_orchestrator import TaskResult
 
 
 class AgentStatus(Enum):
@@ -65,8 +72,8 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
-        agent_id: Optional[str] = None,
         agent_type: str,
+        agent_id: Optional[str] = None,
         config: Dict[str, Any] = None
     ):
         """Initialize base agent."""

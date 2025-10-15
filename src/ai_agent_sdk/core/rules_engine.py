@@ -69,6 +69,8 @@ class RulesEngine:
         self.agent_registry: Dict[str, Set[str]] = {}
         self.task_history: List[Dict[str, Any]] = []
 
+        # Add phases attribute for backward compatibility
+        self.phases = list(Phase)
     def _load_phase_configs(self) -> Dict[Phase, PhaseConfig]:
         """Load phase configurations from rules config."""
         default_configs = {

@@ -1,0 +1,146 @@
+{
+  "status": "CRITICAL_FAILURE",
+  "error": "Mock data detected - testing halted per zero-tolerance policy",
+  "mock_violations": [
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/context_manager.py",
+      "indicator": "mock",
+      "line": 421
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/context_manager.py",
+      "indicator": "placeholder",
+      "line": 435
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "mock",
+      "line": 565
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "placeholder",
+      "line": 566
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "example",
+      "line": 566
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "todo",
+      "line": 566
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "not implemented",
+      "line": 566
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "indicator": "simulated",
+      "line": 235
+    },
+    {
+      "type": "placeholder_pattern",
+      "file": "src/ai_agent_sdk/core/team_leader.py",
+      "pattern": "TODO.*implement",
+      "line": 566
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/agents/codebase_analyzer.py",
+      "indicator": "placeholder",
+      "line": 1632
+    },
+    {
+      "type": "mock_indicator",
+      "file": "src/ai_agent_sdk/agents/codebase_analyzer.py",
+      "indicator": "todo",
+      "line": 597
+    }
+  ],
+  "test_results": {
+    "static_mock_detection": {
+      "status": "FAILED",
+      "violations": [
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/context_manager.py",
+          "indicator": "mock",
+          "line": 421
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/context_manager.py",
+          "indicator": "placeholder",
+          "line": 435
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "mock",
+          "line": 565
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "placeholder",
+          "line": 566
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "example",
+          "line": 566
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "todo",
+          "line": 566
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "not implemented",
+          "line": 566
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "indicator": "simulated",
+          "line": 235
+        },
+        {
+          "type": "placeholder_pattern",
+          "file": "src/ai_agent_sdk/core/team_leader.py",
+          "pattern": "TODO.*implement",
+          "line": 566
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/agents/codebase_analyzer.py",
+          "indicator": "placeholder",
+          "line": 1632
+        },
+        {
+          "type": "mock_indicator",
+          "file": "src/ai_agent_sdk/agents/codebase_analyzer.py",
+          "indicator": "todo",
+          "line": 597
+        }
+      ],
+      "critical_failure": true
+    }
+  }
+}

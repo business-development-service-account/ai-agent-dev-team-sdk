@@ -8,16 +8,21 @@ Implements hot-reload capabilities and caching for optimal performance.
 import asyncio
 import hashlib
 import os
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass, field
 from collections import OrderedDict
-
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+import json
+import threading
+import logging
 
 from .exceptions import ConfigurationError, ValidationError
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,19 +49,74 @@ class AgentContext:
     context_hash: str = ""
 
 
-class PromptFileWatcher(FileSystemEventHandler):
-    """File system watcher for hot-reloading system prompts."""
+class FileWatcher:
+    """Simple file watcher implementation without external dependencies."""
 
-    def __init__(self, context_manager: "ContextManager"):
+    def __init__(self, context_manager: "ContextManager", check_interval: float = 1.0):
         self.context_manager = context_manager
-        super().__init__()
+        self.check_interval = check_interval
+        self.watching = False
+        self._watch_thread: Optional[threading.Thread] = None
+        self._stop_event = threading.Event()
+        self._file_mtimes: Dict[str, float] = {}
 
-    def on_modified(self, event):
-        """Handle file modification events."""
-        if not event.is_directory and event.src_path.endswith('.md'):
-            asyncio.create_task(
-                self.context_manager._reload_prompt_file(event.src_path)
-            )
+    def start_watching(self, directory: Union[str, Path]):
+        """Start watching directory for changes."""
+        if self.watching:
+            return
+
+        self.watching = True
+        self._stop_event.clear()
+        self._watch_thread = threading.Thread(
+            target=self._watch_loop,
+            args=(Path(directory),),
+            daemon=True
+        )
+        self._watch_thread.start()
+        logger.info(f"Started watching directory: {directory}")
+
+    def stop_watching(self):
+        """Stop watching directory."""
+        if not self.watching:
+            return
+
+        self.watching = False
+        self._stop_event.set()
+        if self._watch_thread and self._watch_thread.is_alive():
+            self._watch_thread.join(timeout=2.0)
+        logger.info("Stopped watching directory")
+
+    def _watch_loop(self, directory: Path):
+        """Main watch loop."""
+        while not self._stop_event.is_set():
+            try:
+                self._check_directory_changes(directory)
+                time.sleep(self.check_interval)
+            except Exception as e:
+                logger.error(f"Error in file watcher: {e}")
+
+    def _check_directory_changes(self, directory: Path):
+        """Check for file changes in directory."""
+        if not directory.exists():
+            return
+
+        for file_path in directory.glob("*.md"):
+            try:
+                current_mtime = file_path.stat().st_mtime
+                file_path_str = str(file_path)
+
+                if file_path_str in self._file_mtimes:
+                    if current_mtime > self._file_mtimes[file_path_str]:
+                        # File modified
+                        logger.info(f"File modified: {file_path}")
+                        asyncio.create_task(
+                            self.context_manager._reload_prompt_file(file_path_str)
+                        )
+
+                self._file_mtimes[file_path_str] = current_mtime
+
+            except Exception as e:
+                logger.error(f"Error checking file {file_path}: {e}")
 
 
 class ContextManager:
@@ -71,7 +131,7 @@ class ContextManager:
         self.prompt_cache: OrderedDict[str, SystemPrompt] = OrderedDict()
         self.context_cache: Dict[str, AgentContext] = {}
         self.max_cache_size = 1000
-        self.observer: Optional[Observer] = None
+        self.file_watcher: Optional[FileWatcher] = None
         self.watching = False
 
         # Create prompts directory if it doesn't exist
@@ -278,10 +338,10 @@ class ContextManager:
                 task_type = parts[1] if len(parts) > 1 else None
 
                 await self.load_prompt(agent_type, task_type)
-                print(f"Loaded prompt: {prompt_file.name}")
+                logger.info(f"Loaded prompt: {prompt_file.name}")
 
             except Exception as e:
-                print(f"Failed to load prompt {prompt_file}: {e}")
+                logger.error(f"Failed to load prompt {prompt_file}: {e}")
 
     def _start_file_watching(self):
         """Start watching prompt files for changes."""
@@ -289,18 +349,13 @@ class ContextManager:
             return
 
         try:
-            self.observer = Observer()
-            self.observer.schedule(
-                PromptFileWatcher(self),
-                str(self.prompts_dir),
-                recursive=False
-            )
-            self.observer.start()
+            self.file_watcher = FileWatcher(self)
+            self.file_watcher.start_watching(self.prompts_dir)
             self.watching = True
-            print(f"Started watching prompt directory: {self.prompts_dir}")
+            logger.info(f"Started watching prompt directory: {self.prompts_dir}")
 
         except Exception as e:
-            print(f"Failed to start file watching: {e}")
+            logger.error(f"Failed to start file watching: {e}")
 
     async def _reload_prompt_file(self, file_path: str):
         """Reload a specific prompt file."""
@@ -318,10 +373,10 @@ class ContextManager:
 
             # Reload prompt
             await self.load_prompt(agent_type, task_type, force_reload=True)
-            print(f"Reloaded prompt: {prompt_path.name}")
+            logger.info(f"Reloaded prompt: {prompt_path.name}")
 
         except Exception as e:
-            print(f"Failed to reload prompt {file_path}: {e}")
+            logger.error(f"Failed to reload prompt {file_path}: {e}")
 
     def _initialize_default_prompts(self):
         """Initialize default prompt files if directory is empty."""
@@ -340,9 +395,9 @@ class ContextManager:
             prompt_file = self.prompts_dir / filename
             try:
                 prompt_file.write_text(content, encoding='utf-8')
-                print(f"Created default prompt: {filename}")
+                logger.info(f"Created default prompt: {filename}")
             except Exception as e:
-                print(f"Failed to create default prompt {filename}: {e}")
+                logger.error(f"Failed to create default prompt {filename}: {e}")
 
     def _get_team_leader_prompt(self) -> str:
         """Get default team leader prompt."""
@@ -522,11 +577,10 @@ Focus on creating robust, secure, and scalable backend APIs with proper testing 
 
     async def cleanup(self):
         """Cleanup resources and stop file watching."""
-        if self.observer and self.watching:
-            self.observer.stop()
-            self.observer.join()
+        if self.file_watcher and self.watching:
+            self.file_watcher.stop_watching()
             self.watching = False
-            print("Stopped file watching")
+            logger.info("Stopped file watching")
 
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics for monitoring."""
