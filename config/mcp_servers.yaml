@@ -1,0 +1,171 @@
+# MCP Server Configuration
+# Configuration for external Model Context Protocol (MCP) servers
+
+# Perplexity MCP Server Configuration
+perplexity:
+  name: "perplexity"
+  type: "research"
+  enabled: true
+  description: "Perplexity AI for enhanced research capabilities"
+
+  # Connection Configuration
+  connection:
+    type: "http"
+    base_url: "https://api.perplexity.ai"
+    timeout: 5
+    retry_attempts: 3
+    retry_delay: 1
+
+  # Authentication
+  authentication:
+    type: "api_key"
+    api_key_env: "PERPLEXITY_API_KEY"
+    header_name: "Authorization"
+
+  # Capabilities
+  capabilities:
+    - "research"
+    - "search"
+    - "analyze"
+    - "summarize"
+
+  # Request Configuration
+  requests:
+    max_sources: 20
+    default_complexity: "medium"
+    default_research_mode: "comprehensive"
+    include_analysis: true
+
+  # Health Check
+  health_check:
+    enabled: true
+    interval: 60  # seconds
+    endpoint: "/health"
+    timeout: 5
+
+  # Fallback Configuration
+  fallback:
+    enabled: true
+    local_research: true
+    cached_results: true
+    simplified_analysis: true
+
+# Serena MCP Server Configuration
+serena:
+  name: "serena"
+  type: "code_analysis"
+  enabled: true
+  description: "Serena AI for intelligent code analysis"
+
+  # Connection Configuration
+  connection:
+    type: "http"
+    base_url: "https://api.serena.ai"
+    timeout: 10
+    retry_attempts: 2
+    retry_delay: 2
+
+  # Authentication
+  authentication:
+    type: "api_key"
+    api_key_env: "SERENA_API_KEY"
+    header_name: "X-API-Key"
+
+  # Capabilities
+  capabilities:
+    - "analyze_code"
+    - "security_scan"
+    - "performance_review"
+    - "architecture_analysis"
+
+  # Request Configuration
+  requests:
+    default_analysis_type: "comprehensive"
+    include_suggestions: true
+    check_security: true
+    file_patterns:
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.java"
+      - "**/*.cpp"
+      - "**/*.go"
+    exclude_patterns:
+      - "**/test/**"
+      - "**/node_modules/**"
+      - "**/.git/**"
+      - "**/dist/**"
+      - "**/build/**"
+
+  # Health Check
+  health_check:
+    enabled: true
+    interval: 120  # seconds
+    endpoint: "/status"
+    timeout: 5
+
+  # Fallback Configuration
+  fallback:
+    enabled: true
+    local_analysis: true
+    basic_scanning: true
+    cached_analysis: true
+
+# Custom MCP Server Configuration
+custom_servers:
+  # Example of how to configure additional MCP servers
+  example_server:
+    name: "example_server"
+    type: "custom"
+    enabled: false
+    description: "Example custom MCP server"
+
+    connection:
+      type: "http"
+      base_url: "https://api.example.com"
+      timeout: 15
+      retry_attempts: 3
+
+    authentication:
+      type: "oauth2"
+      client_id_env: "EXAMPLE_CLIENT_ID"
+      client_secret_env: "EXAMPLE_CLIENT_SECRET"
+      token_url: "https://api.example.com/oauth/token"
+
+    capabilities:
+      - "custom_method_1"
+      -custom_method_2"
+
+# Global MCP Configuration
+global:
+  # Circuit Breaker Settings
+  circuit_breaker:
+    failure_threshold: 5
+    recovery_timeout: 30
+    half_open_max_calls: 3
+
+  # Rate Limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+
+  # Caching
+  caching:
+    enabled: true
+    ttl: 300  # seconds
+    max_size: 1000
+
+  # Logging
+  logging:
+    enabled: true
+    level: "INFO"
+    include_request_body: false
+    include_response_body: false
+
+  # Health Monitoring
+  health_monitoring:
+    enabled: true
+    check_interval: 30
+    timeout: 5
+    failure_threshold: 3

@@ -1,0 +1,163 @@
+# TeamLeader Configuration
+# Core orchestration settings for the AI Agent Dev Team SDK
+
+# Rules Engine Configuration
+rules:
+  complexity_budget: 25
+  phase_timeout: 3600
+  max_concurrent_tasks: 10
+
+  # Phase-specific settings
+  phases:
+    initialization:
+      allowed_tasks: ["system_setup", "configuration", "validation"]
+      completion_criteria: ["team_leader_operational", "subsystems_initialized"]
+      max_complexity: 3
+      timeout_seconds: 300
+
+    research:
+      allowed_tasks: ["research", "analysis", "knowledge_synthesis"]
+      completion_criteria: ["research_completed", "findings_synthesized"]
+      max_complexity: 8
+      timeout_seconds: 1800
+
+    planning:
+      allowed_tasks: ["architecture", "design", "planning"]
+      completion_criteria: ["implementation_plan_created", "architecture_approved"]
+      max_complexity: 7
+      timeout_seconds: 1200
+
+    context_preparation:
+      allowed_tasks: ["context_assembly", "validation", "documentation"]
+      completion_criteria: ["context_prepared", "validation_passed"]
+      max_complexity: 5
+      timeout_seconds: 600
+
+    validation:
+      allowed_tasks: ["validation", "risk_assessment", "scope_check"]
+      completion_criteria: ["mock_risk_assessed", "scope_validated"]
+      max_complexity: 6
+      timeout_seconds: 900
+
+    implementation:
+      allowed_tasks: ["development", "coding", "implementation"]
+      completion_criteria: ["functional_implementation", "no_mocks"]
+      max_complexity: 10
+      timeout_seconds: 3600
+
+    verification:
+      allowed_tasks: ["verification", "testing", "quality_check"]
+      completion_criteria: ["independent_verification", "features_match_plan"]
+      max_complexity: 8
+      timeout_seconds: 1800
+
+    testing:
+      allowed_tasks: ["testing", "qa", "integration_testing"]
+      completion_criteria: ["comprehensive_testing", "no_mocks_detected"]
+      max_complexity: 9
+      timeout_seconds: 2400
+
+    user_value_validation:
+      allowed_tasks: ["validation", "user_testing", "compliance_check"]
+      completion_criteria: ["value_delivered", "technical_compliance"]
+      max_complexity: 7
+      timeout_seconds: 1200
+
+    documentation:
+      allowed_tasks: ["documentation", "guides", "api_docs"]
+      completion_criteria: ["documentation_created", "approved_features_only"]
+      max_complexity: 5
+      timeout_seconds: 900
+
+    preparation:
+      allowed_tasks: ["preparation", "setup", "configuration"]
+      completion_criteria: ["next_part_ready", "cleanup_completed"]
+      max_complexity: 3
+      timeout_seconds: 300
+
+# System Prompts Configuration
+prompts_directory: "system_prompts"
+prompt_cache_size: 1000
+prompt_cache_ttl: 300  # seconds
+
+# Agent Registry Configuration
+agent_registry:
+  research:
+    max_concurrent_tasks: 3
+    timeout: 300
+    capabilities: ["web_research", "competitive_analysis", "knowledge_synthesis", "source_verification"]
+
+  codebase_analyzer:
+    max_concurrent_tasks: 2
+    timeout: 600
+    capabilities: ["security_analysis", "performance_analysis", "architecture_review", "dependency_mapping"]
+
+  frontend:
+    max_concurrent_tasks: 2
+    timeout: 900
+    capabilities: ["ui_development", "component_design", "responsive_design", "ux_optimization"]
+
+  backend:
+    max_concurrent_tasks: 2
+    timeout: 1200
+    capabilities: ["api_development", "database_design", "security_implementation", "microservices"]
+
+# WebSocket Configuration
+websocket:
+  host: "localhost"
+  port: 8080
+  max_connections: 100
+  heartbeat_interval: 30
+  message_timeout: 120
+
+# MCP Configuration
+mcp:
+  timeout: 5
+  retry_attempts: 3
+  retry_delay: 1  # seconds
+
+  servers:
+    perplexity:
+      enabled: true
+      api_key_env: "PERPLEXITY_API_KEY"
+      base_url: "https://api.perplexity.ai"
+      timeout: 5
+      retry_attempts: 3
+
+    serena:
+      enabled: true
+      api_key_env: "SERENA_API_KEY"
+      base_url: "https://api.serena.ai"
+      timeout: 10
+      retry_attempts: 2
+
+# Task Orchestrator Configuration
+task_orchestrator:
+  max_concurrent_tasks: 10
+  default_timeout: 300
+  timeout_check_interval: 30
+  task_queue_size: 1000
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  file_path: "logs/team_leader.log"
+  max_file_size: "100MB"
+  backup_count: 5
+
+# Metrics Configuration
+metrics:
+  enabled: true
+  port: 8001
+  endpoint: "/metrics"
+  collect_interval: 60
+
+# Security Configuration
+security:
+  authentication_required: false  # Set to true in production
+  allowed_origins: ["http://localhost:8000", "http://localhost:8080"]
+  max_request_size: "10MB"
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
